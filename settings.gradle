@@ -7,9 +7,8 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
-rootProject.name='fabric-loader'
+rootProject.name='rs-loader'
 
-include "minecraft"
 include "junit"
 
 if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
@@ -17,3 +16,5 @@ if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
 } else {
 	println("Minecraft test sub project requires java 17 or higher!")
 }
+include 'osrs'
+

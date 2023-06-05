@@ -30,7 +30,6 @@ import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.impl.util.version.VersionParser;
@@ -38,7 +37,6 @@ import net.fabricmc.loader.impl.util.version.VersionParser;
 public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final String id;
 	private final Version version;
-	private final ModEnvironment environment;
 	private final String name;
 	private final String description;
 	private final Collection<Person> authors;
@@ -49,7 +47,6 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final Collection<ModDependency> dependencies;
 
 	private BuiltinModMetadata(String id, Version version,
-			ModEnvironment environment,
 			String name, String description,
 			Collection<Person> authors, Collection<Person> contributors,
 			ContactInformation contact,
@@ -58,7 +55,6 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			Collection<ModDependency> dependencies) {
 		this.id = id;
 		this.version = version;
-		this.environment = environment;
 		this.name = name;
 		this.description = description;
 		this.authors = Collections.unmodifiableCollection(authors);
@@ -87,11 +83,6 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	@Override
 	public Version getVersion() {
 		return version;
-	}
-
-	@Override
-	public ModEnvironment getEnvironment() {
-		return environment;
 	}
 
 	@Override
@@ -158,7 +149,6 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	public static class Builder {
 		private final String id;
 		private final Version version;
-		private ModEnvironment environment = ModEnvironment.UNIVERSAL;
 		private String name;
 		private String description = "";
 		private final Collection<Person> authors = new ArrayList<>();
@@ -176,11 +166,6 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			} catch (VersionParsingException e) {
 				throw new RuntimeException(e);
 			}
-		}
-
-		public Builder setEnvironment(ModEnvironment environment) {
-			this.environment = environment;
-			return this;
 		}
 
 		public Builder setName(String name) {
@@ -224,7 +209,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		}
 
 		public ModMetadata build() {
-			return new BuiltinModMetadata(id, version, environment, name, description, authors, contributors, contact, license, icons, dependencies);
+			return new BuiltinModMetadata(id, version, name, description, authors, contributors, contact, license, icons, dependencies);
 		}
 
 		private static Person createPerson(String name, Map<String, String> contactMap) {

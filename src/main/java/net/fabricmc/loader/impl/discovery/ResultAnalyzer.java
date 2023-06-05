@@ -24,14 +24,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
@@ -47,8 +44,7 @@ final class ResultAnalyzer {
 	private static final boolean SHOW_INACTIVE = false;
 
 	@SuppressWarnings("unused")
-	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
-			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
+	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
@@ -58,7 +54,7 @@ final class ResultAnalyzer {
 			if (result.fix != null) {
 				pw.printf("\n%s", Localization.format("resolution.solutionHeader"));
 
-				formatFix(result.fix, result, selectedMods, modsById, envDisabledMods, envType, pw);
+				formatFix(result.fix, result, selectedMods, modsById, pw);
 
 				pw.printf("\n%s", Localization.format("resolution.depListHeader"));
 				prefix = "\t";
@@ -80,7 +76,7 @@ final class ResultAnalyzer {
 					if (candidates != null) matches.addAll(candidates);
 				}
 
-				addErrorToList(explanation.mod, explanation.dep, matches, envDisabledMods.containsKey(dep.getModId()), suggestFix, prefix, pw);
+				addErrorToList(explanation.mod, explanation.dep, matches, suggestFix, prefix, pw);
 				matches.clear();
 			}
 
@@ -123,26 +119,7 @@ final class ResultAnalyzer {
 
 	private static void formatFix(ModSolver.Fix fix,
 			ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
-			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType,
 			PrintWriter pw) {
-		for (AddModVar mod : fix.modsToAdd) {
-			Set<ModCandidate> envDisabledAlternatives = envDisabledMods.get(mod.getId());
-
-			if (envDisabledAlternatives == null) {
-				pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod",
-						mod.getId(),
-						formatVersionRequirements(mod.getVersionIntervals())));
-			} else {
-				String envKey = String.format("environment.%s", envType.name().toLowerCase(Locale.ENGLISH));
-
-				pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModEnvDisabled",
-						formatOldMods(envDisabledAlternatives),
-						mod.getId(),
-						formatVersionRequirements(mod.getVersionIntervals()),
-						Localization.format(envKey)));
-			}
-		}
-
 		for (ModCandidate mod : fix.modsToRemove) {
 			pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getLocalPath()));
 		}
@@ -219,8 +196,7 @@ final class ResultAnalyzer {
 		}
 	}
 
-	static String gatherWarnings(List<ModCandidate> uniqueSelectedMods, Map<String, ModCandidate> selectedMods,
-			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
+	static String gatherWarnings(List<ModCandidate> uniqueSelectedMods, Map<String, ModCandidate> selectedMods) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
@@ -229,19 +205,11 @@ final class ResultAnalyzer {
 					ModCandidate depMod;
 
 					switch (dep.getKind()) {
-					case RECOMMENDS:
-						depMod = selectedMods.get(dep.getModId());
-
-						if (depMod == null || !dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, toList(depMod), envDisabledMods.containsKey(dep.getModId()), true, "", pw);
-						}
-
-						break;
 					case CONFLICTS:
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod != null && dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, toList(depMod), false, true, "", pw);
+							addErrorToList(mod, dep, toList(depMod), false, "", pw);
 						}
 
 						break;
@@ -263,7 +231,7 @@ final class ResultAnalyzer {
 		return mod != null ? Collections.singletonList(mod) : Collections.emptyList();
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean presentForOtherEnv, boolean suggestFix, String prefix, PrintWriter pw) {
+	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean suggestFix, String prefix, PrintWriter pw) {
 		Object[] args = new Object[] {
 				getName(mod),
 				getVersion(mod),
@@ -292,8 +260,6 @@ final class ResultAnalyzer {
 			}
 
 			reason = present ? "invalid" : "mismatch";
-		} else if (presentForOtherEnv && dep.getKind().isPositive()) {
-			reason = "envDisabled";
 		} else {
 			reason = "missing";
 		}

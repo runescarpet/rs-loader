@@ -29,7 +29,6 @@ import org.sat4j.specs.ContradictionException;
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import net.fabricmc.accesswidener.AccessWidener;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
@@ -48,13 +47,13 @@ enum LoaderLibrary {
 	ASM_UTIL(CheckClassAdapter.class),
 	SAT4J_CORE(ContradictionException.class),
 	SAT4J_PB(SolverFactory.class),
-	SERVER_LAUNCH("fabric-server-launch.properties", EnvType.SERVER), // installer generated jar to run setup loader's class path
-	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER), // installer based launch-through method
-	JUNIT_API("org/junit/jupiter/api/Test.class", null),
-	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class", null),
-	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null),
-	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class", null),
-	FABRIC_LOADER_JUNIT("net/fabricmc/loader/impl/junit/FabricLoaderLauncherSessionListener.class", null),
+	SERVER_LAUNCH("fabric-server-launch.properties"), // installer generated jar to run setup loader's class path
+	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class"), // installer based launch-through method
+	JUNIT_API("org/junit/jupiter/api/Test.class"),
+	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class"),
+	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class"),
+	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class"),
+	FABRIC_LOADER_JUNIT("net/fabricmc/loader/impl/junit/FabricLoaderLauncherSessionListener.class"),
 
 	// Logging libraries are only loaded from the platform CL when running as a unit test.
 	LOG4J_API("org/apache/logging/log4j/LogManager.class", true),
@@ -64,7 +63,6 @@ enum LoaderLibrary {
 	SLF4J_API("org/slf4j/Logger.class", true);
 
 	final Path path;
-	final EnvType env;
 	final boolean junitRunOnly;
 
 	LoaderLibrary(Class<?> cls) {
@@ -75,20 +73,18 @@ enum LoaderLibrary {
 		if (path == null) throw new RuntimeException("missing loader library "+name());
 
 		this.path = path;
-		this.env = null;
 		this.junitRunOnly = false;
 	}
 
-	LoaderLibrary(String file, EnvType env) {
-		this(file, env, false);
+	LoaderLibrary(String file) {
+		this(file, false);
 	}
 
-	LoaderLibrary(String file, EnvType env, boolean junitRunOnly) {
+	LoaderLibrary(String file, boolean junitRunOnly) {
 		URL url = LoaderLibrary.class.getClassLoader().getResource(file);
 
 		try {
 			this.path = url != null ? UrlUtil.getCodeSource(url, file) : null;
-			this.env = env;
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);
 		}
@@ -96,12 +92,7 @@ enum LoaderLibrary {
 		this.junitRunOnly = junitRunOnly;
 	}
 
-	LoaderLibrary(String path, boolean loggerLibrary) {
-		this(path, null, loggerLibrary);
-	}
-
-	boolean isApplicable(EnvType env, boolean junitRun) {
-		return (this.env == null || this.env == env)
-				&& (!junitRunOnly || junitRun);
+	boolean isApplicable(boolean junitRun) {
+		return !junitRunOnly || junitRun;
 	}
 }

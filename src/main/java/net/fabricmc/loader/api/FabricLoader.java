@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
@@ -164,18 +163,7 @@ public interface FabricLoader {
 	boolean isDevelopmentEnvironment();
 
 	/**
-	 * Get the current environment type.
-	 *
-	 * @return the current environment type
-	 */
-	EnvType getEnvironmentType();
-
-	/**
-	 * Get the current game instance. Can represent a game client or
-	 * server object. As such, the exact return is dependent on the
-	 * current environment type.
-	 *
-	 * <p>The game instance may not always be available depending on the game version and {@link EnvType environment}.
+	 * Get the current game instance.
 	 *
 	 * @return A client or server instance object
 	 * @deprecated This method is experimental and its use is discouraged.

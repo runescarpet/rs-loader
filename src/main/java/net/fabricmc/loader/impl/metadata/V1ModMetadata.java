@@ -24,12 +24,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -45,7 +43,6 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final Collection<String> provides;
 
 	// Optional (mod loading)
-	private final ModEnvironment environment;
 	private final Map<String, List<EntrypointMetadata>> entrypoints;
 	private final Collection<NestedJarEntry> jars;
 	private final Collection<MixinEntry> mixins;
@@ -74,7 +71,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final Map<String, CustomValue> customValues;
 
 	V1ModMetadata(String id, Version version, Collection<String> provides,
-			ModEnvironment environment, Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars,
+			Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars,
 			Collection<MixinEntry> mixins, /* @Nullable */ String accessWidener,
 			Collection<ModDependency> dependencies, boolean hasRequires,
 			/* @Nullable */ String name, /* @Nullable */String description,
@@ -84,7 +81,6 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		this.id = id;
 		this.version = version;
 		this.provides = Collections.unmodifiableCollection(provides);
-		this.environment = environment;
 		this.entrypoints = Collections.unmodifiableMap(entrypoints);
 		this.jars = Collections.unmodifiableCollection(jars);
 		this.mixins = Collections.unmodifiableCollection(mixins);
@@ -149,16 +145,6 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public void setVersion(Version version) {
 		this.version = version;
-	}
-
-	@Override
-	public ModEnvironment getEnvironment() {
-		return this.environment;
-	}
-
-	@Override
-	public boolean loadsInEnvironment(EnvType type) {
-		return this.environment.matches(type);
 	}
 
 	@Override
@@ -230,14 +216,12 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public Collection<String> getMixinConfigs(EnvType type) {
+	public Collection<String> getMixinConfigs() {
 		final List<String> mixinConfigs = new ArrayList<>();
 
 		// This is only ever called once, so no need to store the result of this.
 		for (MixinEntry mixin : this.mixins) {
-			if (mixin.environment.matches(type)) {
-				mixinConfigs.add(mixin.config);
-			}
+			mixinConfigs.add(mixin.config);
 		}
 
 		return mixinConfigs;
@@ -246,31 +230,6 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public String getAccessWidener() {
 		return this.accessWidener;
-	}
-
-	@Override
-	public Collection<String> getOldInitializers() {
-		return Collections.emptyList(); // Not applicable in V1
-	}
-
-	@Override
-	public List<EntrypointMetadata> getEntrypoints(String type) {
-		if (type == null) {
-			return Collections.emptyList();
-		}
-
-		final List<EntrypointMetadata> entrypoints = this.entrypoints.get(type);
-
-		if (entrypoints != null) {
-			return entrypoints;
-		}
-
-		return Collections.emptyList();
-	}
-
-	@Override
-	public Collection<String> getEntrypointKeys() {
-		return this.entrypoints.keySet();
 	}
 
 	@Override
@@ -315,11 +274,9 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	static final class MixinEntry {
 		private final String config;
-		private final ModEnvironment environment;
 
-		MixinEntry(String config, ModEnvironment environment) {
+		MixinEntry(String config) {
 			this.config = config;
-			this.environment = environment;
 		}
 	}
 

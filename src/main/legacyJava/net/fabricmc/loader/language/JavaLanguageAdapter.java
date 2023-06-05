@@ -23,28 +23,12 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.objectweb.asm.ClassReader;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 
 @Deprecated
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
-		// TODO: Be a bit more involved
-		switch (itfString) {
-		case "net/fabricmc/api/ClientModInitializer":
-			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-				return false;
-			}
-
-			break;
-		case "net/fabricmc/api/DedicatedServerModInitializer":
-			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-				return false;
-			}
-		}
-
 		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(LoaderUtil.getClassFileName(itfString));
 		if (stream == null) return false;
 

@@ -39,7 +39,6 @@ import java.util.jar.Manifest;
 
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
@@ -79,7 +78,6 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private final ClassLoader parentClassLoader;
 	private final GameProvider provider;
 	private final boolean isDevelopment;
-	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
 	private volatile Set<Path> codeSources = Collections.emptySet();
@@ -87,9 +85,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private final Map<Path, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-	KnotClassDelegate(boolean isDevelopment, EnvType envType, T classLoader, ClassLoader parentClassLoader, GameProvider provider) {
+	KnotClassDelegate(boolean isDevelopment, T classLoader, ClassLoader parentClassLoader, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
-		this.envType = envType;
 		this.classLoader = classLoader;
 		this.parentClassLoader = parentClassLoader;
 		this.provider = provider;
@@ -459,7 +456,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		}
 
 		if (input != null) {
-			return FabricTransformer.transform(isDevelopment, envType, name, input);
+			return FabricTransformer.transform(isDevelopment, name, input);
 		}
 
 		return null;

@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
@@ -56,20 +55,12 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 public final class GameProviderHelper {
 	private GameProviderHelper() { }
 
-	public static Path getCommonGameJar() {
-		return getGameJar(SystemProperties.GAME_JAR_PATH);
-	}
-
-	public static Path getEnvGameJar(EnvType env) {
-		return getGameJar(env == EnvType.CLIENT ? SystemProperties.GAME_JAR_PATH_CLIENT : SystemProperties.GAME_JAR_PATH_SERVER);
-	}
-
-	private static Path getGameJar(String property) {
-		String val = System.getProperty(property);
+	private static Path getGameJar() {
+		String val = System.getProperty(SystemProperties.GAME_JAR_PATH);
 		if (val == null) return null;
 
 		Path path = Paths.get(val);
-		if (!Files.exists(path)) throw new RuntimeException("Game jar "+path+" ("+LoaderUtil.normalizePath(path)+") configured through "+property+" system property doesn't exist");
+		if (!Files.exists(path)) throw new RuntimeException("Game jar "+path+" ("+LoaderUtil.normalizePath(path)+") configured through "+ SystemProperties.GAME_JAR_PATH +" system property doesn't exist");
 
 		return LoaderUtil.normalizeExistingPath(path);
 	}

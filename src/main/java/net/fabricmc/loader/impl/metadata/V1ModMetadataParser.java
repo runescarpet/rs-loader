@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -31,7 +30,6 @@ import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
@@ -41,7 +39,6 @@ final class V1ModMetadataParser {
 	/**
 	 * Reads a {@code fabric.mod.json} file of schema version {@code 1}.
 	 *
-	 * @param logger the logger to print warnings to
 	 * @param reader the json reader to read the file with
 	 * @return the metadata of this file, null if the file could not be parsed
 	 * @throws IOException         if there was any issue reading the file
@@ -58,7 +55,6 @@ final class V1ModMetadataParser {
 		List<String> provides = new ArrayList<>();
 
 		// Optional (mod loading)
-		ModEnvironment environment = ModEnvironment.UNIVERSAL; // Default is always universal
 		Map<String, List<EntrypointMetadata>> entrypoints = new HashMap<>();
 		List<NestedJarEntry> jars = new ArrayList<>();
 		List<V1ModMetadata.MixinEntry> mixins = new ArrayList<>();
@@ -123,13 +119,6 @@ final class V1ModMetadataParser {
 				break;
 			case "provides":
 				readProvides(reader, provides);
-				break;
-			case "environment":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Environment must be a string", reader);
-				}
-
-				environment = readEnvironment(reader);
 				break;
 			case "entrypoints":
 				readEntrypoints(warnings, reader, entrypoints);
@@ -223,7 +212,7 @@ final class V1ModMetadataParser {
 		ModMetadataParser.logWarningMessages(id, warnings);
 
 		return new V1ModMetadata(id, version, provides,
-				environment, entrypoints, jars, mixins, accessWidener,
+				entrypoints, jars, mixins, accessWidener,
 				dependencies, hasRequires,
 				name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
 	}
@@ -244,20 +233,6 @@ final class V1ModMetadataParser {
 		}
 
 		reader.endArray();
-	}
-
-	private static ModEnvironment readEnvironment(JsonReader reader) throws ParseMetadataException, IOException {
-		final String environment = reader.nextString().toLowerCase(Locale.ROOT);
-
-		if (environment.isEmpty() || environment.equals("*")) {
-			return ModEnvironment.UNIVERSAL;
-		} else if (environment.equals("client")) {
-			return ModEnvironment.CLIENT;
-		} else if (environment.equals("server")) {
-			return ModEnvironment.SERVER;
-		} else {
-			throw new ParseMetadataException("Invalid environment type: " + environment + "!", reader);
-		}
 	}
 
 	private static void readEntrypoints(List<ParseWarning> warnings, JsonReader reader, Map<String, List<EntrypointMetadata>> entrypoints) throws IOException, ParseMetadataException {
@@ -382,30 +357,23 @@ final class V1ModMetadataParser {
 			switch (reader.peek()) {
 			case STRING:
 				// All mixin configs specified via string are assumed to be universal
-				mixins.add(new V1ModMetadata.MixinEntry(reader.nextString(), ModEnvironment.UNIVERSAL));
+				mixins.add(new V1ModMetadata.MixinEntry(reader.nextString()));
 				break;
 			case BEGIN_OBJECT:
 				reader.beginObject();
 
 				String config = null;
-				ModEnvironment environment = null;
 
 				while (reader.hasNext()) {
 					final String key = reader.nextName();
 
-					switch (key) {
-					// Environment is optional
-					case "environment":
-						environment = V1ModMetadataParser.readEnvironment(reader);
-						break;
-					case "config":
+					if ("config".equals(key)) {
 						if (reader.peek() != JsonToken.STRING) {
 							throw new ParseMetadataException("Value of \"config\" must be a string", reader);
 						}
 
 						config = reader.nextString();
-						break;
-					default:
+					} else {
 						warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), key, "Invalid entry in mixin config entry"));
 						reader.skipValue();
 					}
@@ -413,15 +381,11 @@ final class V1ModMetadataParser {
 
 				reader.endObject();
 
-				if (environment == null) {
-					environment = ModEnvironment.UNIVERSAL; // Default to universal
-				}
-
 				if (config == null) {
 					throw new ParseMetadataException.MissingField("Missing mandatory key 'config' in mixin entry!");
 				}
 
-				mixins.add(new V1ModMetadata.MixinEntry(config, environment));
+				mixins.add(new V1ModMetadata.MixinEntry(config));
 				break;
 			default:
 				warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), "Invalid mixin entry type"));

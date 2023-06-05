@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.jar.Manifest;
@@ -36,7 +35,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
@@ -55,16 +53,15 @@ public final class Knot extends FabricLauncherBase {
 
 	private KnotClassLoaderInterface classLoader;
 	private boolean isDevelopment;
-	private EnvType envType;
 	private final List<Path> classPath = new ArrayList<>();
 	private GameProvider provider;
 	private boolean unlocked;
 
-	public static void launch(String[] args, EnvType type) {
+	public static void launch(String[] args) {
 		setupUncaughtExceptionHandler();
 
 		try {
-			Knot knot = new Knot(type);
+			Knot knot = new Knot();
 			ClassLoader cl = knot.init(args);
 
 			if (knot.provider == null) {
@@ -77,29 +74,11 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
-	public Knot(EnvType type) {
-		this.envType = type;
+	public Knot() {
 	}
 
 	public ClassLoader init(String[] args) {
 		setProperties(properties);
-
-		// configure fabric vars
-		if (envType == null) {
-			String side = System.getProperty(SystemProperties.SIDE);
-			if (side == null) throw new RuntimeException("Please specify side or use a dedicated Knot!");
-
-			switch (side.toLowerCase(Locale.ROOT)) {
-			case "client":
-				envType = EnvType.CLIENT;
-				break;
-			case "server":
-				envType = EnvType.SERVER;
-				break;
-			default:
-				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
-			}
-		}
 
 		classPath.clear();
 
@@ -136,7 +115,7 @@ public final class Knot extends FabricLauncherBase {
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
 		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
-		classLoader = KnotClassLoaderInterface.create(useCompatibility, isDevelopment(), envType, provider);
+		classLoader = KnotClassLoaderInterface.create(useCompatibility, isDevelopment(), provider);
 		ClassLoader cl = classLoader.getClassLoader();
 
 		provider.initialize(this);
@@ -150,7 +129,7 @@ public final class Knot extends FabricLauncherBase {
 
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 
-		FabricMixinBootstrap.init(getEnvironmentType(), loader);
+		FabricMixinBootstrap.init(loader);
 		FabricLauncherBase.finishMixinBootstrapping();
 
 		classLoader.initializeTransformers();
@@ -286,11 +265,6 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public EnvType getEnvironmentType() {
-		return envType;
-	}
-
-	@Override
 	public boolean isClassLoaded(String name) {
 		return classLoader.isClassLoaded(name);
 	}
@@ -339,7 +313,7 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	public static void main(String[] args) {
-		new Knot(null).init(args);
+		new Knot().init(args);
 	}
 
 	static {

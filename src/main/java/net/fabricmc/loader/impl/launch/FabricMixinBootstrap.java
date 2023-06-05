@@ -29,7 +29,6 @@ import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
 import org.spongepowered.asm.mixin.transformer.Config;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
@@ -50,7 +49,7 @@ public final class FabricMixinBootstrap {
 
 	private static boolean initialized = false;
 
-	public static void init(EnvType side, FabricLoaderImpl loader) {
+	public static void init(FabricLoaderImpl loader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -85,7 +84,7 @@ public final class FabricMixinBootstrap {
 		Map<String, ModContainerImpl> configToModMap = new HashMap<>();
 
 		for (ModContainerImpl mod : loader.getModsInternal()) {
-			for (String config : mod.getMetadata().getMixinConfigs(side)) {
+			for (String config : mod.getMetadata().getMixinConfigs()) {
 				ModContainerImpl prev = configToModMap.putIfAbsent(config, mod);
 				if (prev != null) throw new RuntimeException(String.format("Non-unique Mixin config name %s used by the mods %s and %s", config, prev.getMetadata().getId(), mod.getMetadata().getId()));
 

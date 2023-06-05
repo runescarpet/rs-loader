@@ -21,16 +21,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
 
-import net.fabricmc.api.EnvType;
-
 /**
  * @deprecated Internal API, do not use
  */
 @Deprecated
 public interface FabricLauncher {
-	MappingConfiguration getMappingConfiguration();
 	void propose(URL url);
-	EnvType getEnvironmentType();
 	boolean isClassLoaded(String name);
 	InputStream getResourceAsStream(String name);
 	ClassLoader getTargetClassLoader();

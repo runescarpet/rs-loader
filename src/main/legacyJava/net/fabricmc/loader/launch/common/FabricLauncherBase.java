@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
@@ -45,18 +44,8 @@ public class FabricLauncherBase implements FabricLauncher {
 	}
 
 	@Override
-	public MappingConfiguration getMappingConfiguration() {
-		return new MappingConfiguration();
-	}
-
-	@Override
 	public void propose(URL url) {
 		parent.addToClassPath(UrlUtil.asPath(url));
-	}
-
-	@Override
-	public EnvType getEnvironmentType() {
-		return FabricLoader.getInstance().getEnvironmentType();
 	}
 
 	@Override

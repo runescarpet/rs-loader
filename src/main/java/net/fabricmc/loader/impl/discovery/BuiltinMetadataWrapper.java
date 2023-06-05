@@ -18,20 +18,16 @@ package net.fabricmc.loader.impl.discovery;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
-import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.NestedJarEntry;
 
@@ -70,11 +66,6 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	@Override
 	public void setVersion(Version version) {
 		this.version = version;
-	}
-
-	@Override
-	public ModEnvironment getEnvironment() {
-		return parent.getEnvironment();
 	}
 
 	@Override
@@ -153,33 +144,13 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	}
 
 	@Override
-	public Collection<String> getMixinConfigs(EnvType type) {
+	public Collection<String> getMixinConfigs() {
 		return Collections.emptyList();
 	}
 
 	@Override
 	public String getAccessWidener() {
 		return null;
-	}
-
-	@Override
-	public boolean loadsInEnvironment(EnvType type) {
-		return true;
-	}
-
-	@Override
-	public Collection<String> getOldInitializers() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public List<EntrypointMetadata> getEntrypoints(String type) {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public Collection<String> getEntrypointKeys() {
-		return Collections.emptyList();
 	}
 
 	@Override

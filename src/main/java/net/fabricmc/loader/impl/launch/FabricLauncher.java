@@ -23,16 +23,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.jar.Manifest;
 
-import net.fabricmc.api.EnvType;
-
 public interface FabricLauncher {
 	MappingConfiguration getMappingConfiguration();
 
 	void addToClassPath(Path path, String... allowedPrefixes);
 	void setAllowedPrefixes(Path path, String... prefixes);
 	void setValidParentClassPath(Collection<Path> paths);
-
-	EnvType getEnvironmentType();
 
 	boolean isClassLoaded(String name);
 

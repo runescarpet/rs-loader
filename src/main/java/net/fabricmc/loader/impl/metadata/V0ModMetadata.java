@@ -19,20 +19,17 @@ package net.fabricmc.loader.impl.metadata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.Person;
 
 final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetadata {
-	private static final Mixins EMPTY_MIXINS = new Mixins(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+	private static final Mixins EMPTY_MIXINS = new Mixins(Collections.emptyList());
 	// Required
 	private final String id;
 	private Version version;
@@ -41,7 +38,6 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private Collection<ModDependency> dependencies;
 	private final String languageAdapter = "net.fabricmc.loader.language.JavaLanguageAdapter"; // TODO: Constants class?
 	private final Mixins mixins;
-	private final ModEnvironment environment; // REMOVEME: Replacing Side in old metadata with this
 	private final String initializer;
 	private final Collection<String> initializers;
 
@@ -53,7 +49,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final ContactInformation links;
 	private final String license;
 
-	V0ModMetadata(String id, Version version, Collection<ModDependency> dependencies, Mixins mixins, ModEnvironment environment, String initializer, Collection<String> initializers,
+	V0ModMetadata(String id, Version version, Collection<ModDependency> dependencies, Mixins mixins, String initializer, Collection<String> initializers,
 			String name, String description, Collection<Person> authors, Collection<Person> contributors, ContactInformation links, String license) {
 		this.id = id;
 		this.version = version;
@@ -65,7 +61,6 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 			this.mixins = mixins;
 		}
 
-		this.environment = environment;
 		this.initializer = initializer;
 		this.initializers = Collections.unmodifiableCollection(initializers);
 		this.name = name;
@@ -110,16 +105,6 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public void setVersion(Version version) {
 		this.version = version;
-	}
-
-	@Override
-	public ModEnvironment getEnvironment() {
-		return this.environment;
-	}
-
-	@Override
-	public boolean loadsInEnvironment(EnvType type) {
-		return this.environment.matches(type);
 	}
 
 	@Override
@@ -207,43 +192,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public Collection<String> getOldInitializers() {
-		if (this.initializer != null) {
-			return Collections.singletonList(this.initializer);
-		} else if (!this.initializers.isEmpty()) {
-			return this.initializers;
-		} else {
-			return Collections.emptyList();
-		}
-	}
-
-	@Override
-	public List<EntrypointMetadata> getEntrypoints(String type) {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public Collection<String> getEntrypointKeys() {
-		return Collections.emptyList();
-	}
-
-	@Override
 	public void emitFormatWarnings() { }
 
 	@Override
-	public Collection<String> getMixinConfigs(EnvType type) {
-		List<String> mixinConfigs = new ArrayList<>(this.mixins.common);
-
-		switch (type) {
-		case CLIENT:
-			mixinConfigs.addAll(this.mixins.client);
-			break;
-		case SERVER:
-			mixinConfigs.addAll(this.mixins.server);
-			break;
-		}
-
-		return mixinConfigs;
+	public Collection<String> getMixinConfigs() {
+		return new ArrayList<>(this.mixins.common);
 	}
 
 	@Override
@@ -252,14 +205,10 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	static final class Mixins {
-		final Collection<String> client;
-		final Collection<String> common;
-		final Collection<String> server;
+		final Collection<String> common;;
 
-		Mixins(Collection<String> client, Collection<String> common, Collection<String> server) {
-			this.client = Collections.unmodifiableCollection(client);
+		Mixins(Collection<String> common) {
 			this.common = Collections.unmodifiableCollection(common);
-			this.server = Collections.unmodifiableCollection(server);
 		}
 	}
 }

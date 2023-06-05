@@ -144,7 +144,6 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 
 	manifest {
 		attributes (
-			'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher',
 			'Fabric-Loom-Remap': 'false',
 			'Automatic-Module-Name': 'net.fabricmc.loader'
 		)

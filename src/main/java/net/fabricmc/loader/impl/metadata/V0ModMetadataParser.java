@@ -30,7 +30,6 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
@@ -51,7 +50,6 @@ final class V0ModMetadataParser {
 		// Optional (mod loading)
 		List<ModDependency> dependencies = new ArrayList<>();
 		V0ModMetadata.Mixins mixins = null;
-		ModEnvironment environment = ModEnvironment.UNIVERSAL; // Default is always universal
 		String initializer = null;
 		List<String> initializers = new ArrayList<>();
 
@@ -108,28 +106,6 @@ final class V0ModMetadataParser {
 				break;
 			case "mixins":
 				mixins = readMixins(warnings, reader);
-				break;
-			case "side":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Side must be a string", reader);
-				}
-
-				final String rawEnvironment = reader.nextString();
-
-				switch (rawEnvironment) {
-				case "universal":
-					environment = ModEnvironment.UNIVERSAL;
-					break;
-				case "client":
-					environment = ModEnvironment.CLIENT;
-					break;
-				case "server":
-					environment = ModEnvironment.SERVER;
-					break;
-				default:
-					warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), rawEnvironment, "Invalid side type"));
-				}
-
 				break;
 			case "initializer":
 				// `initializer` and `initializers` cannot be used at the same time
@@ -225,7 +201,7 @@ final class V0ModMetadataParser {
 			links = ContactInformation.EMPTY;
 		}
 
-		return new V0ModMetadata(id, version, dependencies, mixins, environment, initializer, initializers, name, description, authors, contributors, links, license);
+		return new V0ModMetadata(id, version, dependencies, mixins, initializer, initializers, name, description, authors, contributors, links, license);
 	}
 
 	private static ContactInformation readLinks(List<ParseWarning> warnings, JsonReader reader) throws IOException, ParseMetadataException {
@@ -279,9 +255,7 @@ final class V0ModMetadataParser {
 	}
 
 	private static V0ModMetadata.Mixins readMixins(List<ParseWarning> warnings, JsonReader reader) throws IOException, ParseMetadataException {
-		final List<String> client = new ArrayList<>();
 		final List<String> common = new ArrayList<>();
-		final List<String> server = new ArrayList<>();
 
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Expected mixins to be an object.", reader);
@@ -293,23 +267,17 @@ final class V0ModMetadataParser {
 			final String environment = reader.nextName();
 
 			switch (environment) {
-			case "client":
-				client.addAll(readStringArray(reader, "client"));
-				break;
 			case "common":
 				common.addAll(readStringArray(reader, "common"));
 				break;
-			case "server":
-				server.addAll(readStringArray(reader, "server"));
-				break;
 			default:
-				warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), environment, "Invalid environment type"));
+				warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), environment, "Invalid mixin type"));
 				reader.skipValue();
 			}
 		}
 
 		reader.endObject();
-		return new V0ModMetadata.Mixins(client, common, server);
+		return new V0ModMetadata.Mixins(common);
 	}
 
 	private static List<String> readStringArray(JsonReader reader, String key) throws IOException, ParseMetadataException {

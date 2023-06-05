@@ -30,14 +30,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.accesswidener.AccessWidenerReader;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
@@ -56,7 +54,6 @@ import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
-import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
@@ -72,9 +69,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
 	public static final String VERSION = "0.14.21";
-	public static final String MOD_ID = "fabricloader";
+	public static final String MOD_ID = "rsloader";
 
-	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
+	public static final String CACHE_DIR_NAME = ".rs"; // relative to game dir
 	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to cache dir
 	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to cache dir
 	private static final String TMP_DIR_NAME = "tmp"; // relative to cache dir
@@ -136,11 +133,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	@Override
 	public Object getGameInstance() {
 		return gameInstance;
-	}
-
-	@Override
-	public EnvType getEnvironmentType() {
-		return FabricLauncherBase.getLauncher().getEnvironmentType();
 	}
 
 	/**
@@ -208,8 +200,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
-		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
-		modCandidates = discoverer.discoverMods(this, envDisabledMods);
+		modCandidates = discoverer.discoverMods(this);
 
 		// dump version and dependency overrides info
 
@@ -223,7 +214,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// resolve mods
 
-		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType(), envDisabledMods);
+		modCandidates = ModResolver.resolve(modCandidates);
 
 		dumpModList(modCandidates);
 
@@ -347,7 +338,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		setupLanguageAdapters();
-		setupMods();
 	}
 
 	public boolean hasEntrypoints(String key) {
@@ -444,25 +434,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 	}
 
-	private void setupMods() {
-		for (ModContainerImpl mod : mods) {
-			try {
-				for (String in : mod.getInfo().getOldInitializers()) {
-					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
-					entrypointStorage.addDeprecated(mod, adapter, in);
-				}
-
-				for (String key : mod.getInfo().getEntrypointKeys()) {
-					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
-						entrypointStorage.add(mod, key, in, adapterMap);
-					}
-				}
-			} catch (Exception e) {
-				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getInfo().getName(), mod.getOrigin()), e);
-			}
-		}
-	}
-
 	public void loadAccessWideners() {
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
 
@@ -539,21 +510,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public AccessWidener getAccessWidener() {
 		return accessWidener;
-	}
-
-	/**
-	 * Sets the game instance. This is only used in 20w22a+ by the dedicated server and should not be called by anything else.
-	 */
-	public void setGameInstance(Object gameInstance) {
-		if (getEnvironmentType() != EnvType.SERVER) {
-			throw new UnsupportedOperationException("Cannot set game instance on a client!");
-		}
-
-		if (this.gameInstance != null) {
-			throw new UnsupportedOperationException("Cannot overwrite current game instance!");
-		}
-
-		this.gameInstance = gameInstance;
 	}
 
 	@Override

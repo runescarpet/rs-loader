@@ -17,10 +17,8 @@
 package net.fabricmc.loader.impl.metadata;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 
@@ -37,17 +35,9 @@ public interface LoaderModMetadata extends net.fabricmc.loader.metadata.LoaderMo
 
 	Map<String, String> getLanguageAdapterDefinitions();
 	Collection<NestedJarEntry> getJars();
-	Collection<String> getMixinConfigs(EnvType type);
+	Collection<String> getMixinConfigs();
 	/* @Nullable */
 	String getAccessWidener();
-	@Override
-	boolean loadsInEnvironment(EnvType type);
-
-	Collection<String> getOldInitializers();
-	@Override
-	List<EntrypointMetadata> getEntrypoints(String type);
-	@Override
-	Collection<String> getEntrypointKeys();
 
 	void emitFormatWarnings();
 

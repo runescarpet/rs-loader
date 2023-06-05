@@ -38,7 +38,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
@@ -56,7 +55,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	private final Set<Path> systemLibraries = new HashSet<>();
 	private final List<Path> unmatchedOrigins = new ArrayList<>();
 
-	public LibClassifier(Class<L> cls, EnvType env, GameProvider gameProvider) throws IOException {
+	public LibClassifier(Class<L> cls, GameProvider gameProvider) throws IOException {
 		L[] libs = cls.getEnumConstants();
 
 		this.libs = new ArrayList<>(libs.length);
@@ -66,9 +65,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		// game provider libs
 
 		for (L lib : libs) {
-			if (lib.isApplicable(env)) {
-				this.libs.add(lib);
-			}
+			this.libs.add(lib);
 		}
 
 		// system libs configured through system property
@@ -98,7 +95,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		boolean junitRun = System.getProperty(SystemProperties.UNIT_TEST) != null;
 
 		for (LoaderLibrary lib : LoaderLibrary.values()) {
-			if (!lib.isApplicable(env, junitRun)) continue;
+			if (!lib.isApplicable(junitRun)) continue;
 
 			if (lib.path != null) {
 				Path path = LoaderUtil.normalizeExistingPath(lib.path);
@@ -128,11 +125,11 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 
 		// process indirectly referenced libs
 
-		processManifestClassPath(LoaderLibrary.SERVER_LAUNCH, env, junitRun); // not used by fabric itself, but others add Log4J this way
+		processManifestClassPath(LoaderLibrary.SERVER_LAUNCH, junitRun); // not used by fabric itself, but others add Log4J this way
 	}
 
-	private void processManifestClassPath(LoaderLibrary lib, EnvType env, boolean junitRun) throws IOException {
-		if (lib.path == null || !lib.isApplicable(env, junitRun) || !Files.isRegularFile(lib.path)) return;
+	private void processManifestClassPath(LoaderLibrary lib, boolean junitRun) throws IOException {
+		if (lib.path == null || !lib.isApplicable(junitRun) || !Files.isRegularFile(lib.path)) return;
 
 		Manifest manifest;
 
@@ -291,7 +288,6 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	public interface LibraryType {
-		boolean isApplicable(EnvType env);
 		String[] getPaths();
 	}
 }

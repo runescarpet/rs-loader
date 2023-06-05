@@ -45,7 +45,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
@@ -69,7 +68,6 @@ public final class ModDiscoverer {
 	private final VersionOverrides versionOverrides;
 	private final DependencyOverrides depOverrides;
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
-	private final EnvType envType = FabricLoaderImpl.INSTANCE.getEnvironmentType();
 	private final Map<Long, ModScanTask> jijDedupMap = new ConcurrentHashMap<>(); // avoids reading the same jar twice
 	private final List<NestedModInitData> nestedModInitDatas = Collections.synchronizedList(new ArrayList<>()); // breaks potential cycles from deduplication
 
@@ -82,7 +80,7 @@ public final class ModDiscoverer {
 		candidateFinders.add(f);
 	}
 
-	public List<ModCandidate> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidate>> envDisabledModsOut) throws ModResolutionException {
+	public List<ModCandidate> discoverMods(FabricLoaderImpl loader) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
 		Set<Path> processedPaths = new HashSet<>(); // suppresses duplicate paths
@@ -180,16 +178,12 @@ public final class ModDiscoverer {
 		ModCandidate mod;
 
 		while ((mod = queue.poll()) != null) {
-			if (mod.getMetadata().loadsInEnvironment(envType)) {
-				if (!ret.add(mod)) continue;
+			if (!ret.add(mod)) continue;
 
-				for (ModCandidate child : mod.getNestedMods()) {
-					if (child.addParent(mod)) {
-						queue.add(child);
-					}
+			for (ModCandidate child : mod.getNestedMods()) {
+				if (child.addParent(mod)) {
+					queue.add(child);
 				}
-			} else {
-				envDisabledModsOut.computeIfAbsent(mod.getId(), ignore -> Collections.newSetFromMap(new IdentityHashMap<>())).add(mod);
 			}
 		}
 
@@ -291,10 +285,6 @@ public final class ModDiscoverer {
 					metadata = parseMetadata(is, localPath);
 				}
 
-				if (!metadata.loadsInEnvironment(envType)) {
-					return ModCandidate.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
-				}
-
 				List<ModScanTask> nestedModTasks;
 
 				if (metadata.getJars().isEmpty()) {
@@ -363,10 +353,6 @@ public final class ModDiscoverer {
 			}
 
 			if (metadata == null) return null;
-
-			if (!metadata.loadsInEnvironment(envType)) {
-				return ModCandidate.createNested(localPath, hash, metadata, requiresRemap, Collections.emptyList());
-			}
 
 			Collection<NestedJarEntry> nestedJars = metadata.getJars();
 			List<ModScanTask> nestedModTasks;

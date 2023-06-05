@@ -214,7 +214,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public String getSideName() {
-		return FabricLauncherBase.getLauncher().getEnvironmentType().name();
+		return "UNIVERSAL";
 	}
 
 	@Override
