@@ -2,24 +2,25 @@ plugins {
     id 'java'
 }
 
-group 'net.fabricmc'
+group 'io.github.runescarpet'
 version '0.14.21+local'
 
 repositories {
-    mavenCentral()
+
 }
 
 dependencies {
 	api project(":")
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-
-	// log4j wrapper
-	compileOnly 'org.apache.logging.log4j:log4j-api:2.8.1'
-	// slf4j wrapper
-	compileOnly 'org.slf4j:slf4j-api:1.8.0-beta4'
 }
 
-test {
-    useJUnitPlatform()
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
+}
+
+jar {
+	enabled = false
 }

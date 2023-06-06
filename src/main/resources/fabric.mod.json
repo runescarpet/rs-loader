@@ -3,7 +3,6 @@
   "id": "fabricloader",
   "name": "Fabric Loader",
   "version": "${version}",
-  "environment": "*",
   "description": "The base mod loader.",
   "contact": {
     "homepage": "https://fabricmc.net",

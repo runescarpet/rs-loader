@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -63,10 +64,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		this.localPaths = new EnumMap<>(cls);
 
 		// game provider libs
-
-		for (L lib : libs) {
-			this.libs.add(lib);
-		}
+		this.libs.addAll(Arrays.asList(libs));
 
 		// system libs configured through system property
 
@@ -85,7 +83,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 				path = LoaderUtil.normalizeExistingPath(path);
 
 				if (systemLibraries.add(path)) {
-					if (DEBUG) sb.append(String.format("🇸 %s%n", path));
+					if (DEBUG) sb.append(String.format("s %s%n", path));
 				}
 			}
 		}
@@ -101,9 +99,9 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 				Path path = LoaderUtil.normalizeExistingPath(lib.path);
 				systemLibraries.add(path);
 
-				if (DEBUG) sb.append(String.format("✅ %s %s%n", lib.name(), path));
+				if (DEBUG) sb.append(String.format("Y %s %s%n", lib.name(), path));
 			} else {
-				if (DEBUG) sb.append(String.format("❎ %s%n", lib.name()));
+				if (DEBUG) sb.append(String.format("N %s%n", lib.name()));
 			}
 		}
 
@@ -115,10 +113,10 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 			gameProviderPath = LoaderUtil.normalizeExistingPath(gameProviderPath);
 
 			if (systemLibraries.add(gameProviderPath)) {
-				if (DEBUG) sb.append(String.format("✅ gameprovider %s%n", gameProviderPath));
+				if (DEBUG) sb.append(String.format("Y gameprovider %s%n", gameProviderPath));
 			}
 		} else {
-			if (DEBUG) sb.append("❎ gameprovider");
+			if (DEBUG) sb.append("N gameprovider");
 		}
 
 		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader/system libraries:%n%s", sb);

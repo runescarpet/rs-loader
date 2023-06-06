@@ -55,7 +55,7 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 public final class GameProviderHelper {
 	private GameProviderHelper() { }
 
-	private static Path getGameJar() {
+	public static Path getGameJar() {
 		String val = System.getProperty(SystemProperties.GAME_JAR_PATH);
 		if (val == null) return null;
 

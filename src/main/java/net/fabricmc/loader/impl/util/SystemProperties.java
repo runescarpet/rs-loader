@@ -19,9 +19,8 @@ package net.fabricmc.loader.impl.util;
 public final class SystemProperties {
 	// whether fabric loader is running in a development environment / mode, affects class path mod discovery, remapping, logging, ...
 	public static final String DEVELOPMENT = "fabric.development";
-	public static final String SIDE = "fabric.side";
-	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
-	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
+	// skips the embedded game provider, letting ServiceLoader-provided ones take over
+	public static final String SKIP_DEFAULT_PROVIDER = "fabric.skipDefaultProvider";
 	// game jar paths for common/client/server, replaces lookup from class path if present, env specific takes precedence
 	public static final String GAME_JAR_PATH = "fabric.gameJarPath";
 	// set the game version for the builtin game mod/dependencies, bypassing auto-detection

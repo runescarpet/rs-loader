@@ -49,7 +49,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class Knot extends FabricLauncherBase {
-	protected Map<String, Object> properties = new HashMap<>();
+	private final Map<String, Object> properties = new HashMap<>();
 
 	private KnotClassLoaderInterface classLoader;
 	private boolean isDevelopment;

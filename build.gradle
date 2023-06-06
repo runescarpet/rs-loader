@@ -70,13 +70,14 @@ dependencies {
 	api "org.ow2.asm:asm-tree:${project.asm_version}"
 	api "org.ow2.asm:asm-util:${project.asm_version}"
 
+	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
+	api 'net.fabricmc:tiny-remapper:0.8.2'
+	api 'net.fabricmc:access-widener:2.1.0'
+
 	api("net.fabricmc:sponge-mixin:${project.mixin_version}") {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
-	api 'net.fabricmc:tiny-remapper:0.8.2'
-	api 'net.fabricmc:access-widener:2.1.0'
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
@@ -136,7 +137,7 @@ task getSat4jAbout(type: Copy) {
 
 task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	from sourceSets.main.output
-	from project(":minecraft").sourceSets.main.output
+	from project(":osrs").sourceSets.main.output
 	from getSat4jAbout.destinationDir
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}
@@ -165,7 +166,7 @@ File proguardFile = file("build/libs/fabric-loader-${version}.jar")
 
 import proguard.gradle.ProGuardTask
 task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
-	def classpath = project(":minecraft").configurations.compileClasspath
+	def classpath = project(":osrs").configurations.compileClasspath
 
 	inputs.files(fatJar, classpath)
 	outputs.files(proguardFile)
@@ -191,7 +192,7 @@ tasks.withType(AbstractArchiveTask) {
 
 sourcesJar {
 	from sourceSets.main.allSource
-	from project(":minecraft").sourceSets.main.allSource
+	from project(":osrs").sourceSets.main.allSource
 }
 
 // useful for creating test mod jar
